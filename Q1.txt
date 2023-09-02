@@ -1,0 +1,86 @@
+Q1
+
+insert into cd.facilities 
+	values (9, 'Spa', 20, 30, 100000, 800);
+
+Q2
+
+insert into cd.facilities 
+	values (9, 'Spa', 20, 30, 100000, 800),
+		(10, 'Squash Court 2', 3.5, 17.5, 5000, 80);
+
+Q3
+
+insert into cd.facilities 
+	values ((select coalesce(max(facid), 0) + 1 from cd.facilities),
+		 'Spa', 20, 30, 100000, 800);
+
+insert into cd.facilities
+    (facid, name, membercost, guestcost, initialoutlay, monthlymaintenance)
+    select (select max(facid) from cd.facilities)+1, 'Spa', 20, 30, 100000, 800; 
+
+Q4
+
+update cd.facilities 
+	set initialoutlay=10000
+		where name='Tennis Court 2';
+
+update cd.facilities
+    set initialoutlay = 10000
+    where facid = 1;      
+
+Q5
+
+update cd.facilities 
+	set guestcost = 30, membercost=6
+		where name like 'Tennis Court%' ;
+
+update cd.facilities
+    set
+        membercost = 6,
+        guestcost = 30
+    where facid in (0,1);  
+
+Q6
+
+update cd.facilities 
+	set guestcost = ( select guestcost * 1.1 from cd.facilities where name = 'Tennis Court 1'),
+		membercost = (select membercost * 1.1 from cd.facilities where name = 'Tennis Court 1')
+	
+		where name = 'Tennis Court 2' ;    
+
+
+update cd.facilities facs
+    set
+        membercost = facs2.membercost * 1.1,
+        guestcost = facs2.guestcost * 1.1
+    from (select * from cd.facilities where facid = 0) facs2
+    where facs.facid = 1;
+
+Q7
+
+delete from cd.bookings;
+
+truncate cd.bookings;
+
+Q8
+
+delete from cd.members where memid=37;
+
+Q9
+
+delete from cd.members where  not exists (select memid from cd.bookings);
+
+delete from cd.members where memid not in (select memid from cd.bookings);          
+
+delete from cd.members mems where not exists (select 1 from cd.bookings where memid = mems.memid);
+
+GBT-4:
+
+DELETE FROM cd.members
+	WHERE memid IN (
+  		SELECT cd.members.memid
+  			FROM cd.members
+  				LEFT JOIN cd.bookings ON cd.members.memid = cd.bookings.memid
+  			WHERE cd.bookings.memid IS NULL
+);
